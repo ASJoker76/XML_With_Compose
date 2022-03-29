@@ -68,4 +68,7 @@ dependencies {
     implementation 'androidx.core:core-ktx:1.7.0'
     implementation "androidx.lifecycle:lifecycle-extensions:2.2.0"
     implementation 'androidx.fragment:fragment-ktx:1.4.1'
+
+    //constrain layout
+    implementation "androidx.constraintlayout:constraintlayout-compose:1.0.0"
 }

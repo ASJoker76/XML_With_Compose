@@ -28,11 +28,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.constraintlayout.compose.ConstraintSet
+import androidx.constraintlayout.compose.Dimension
 import androidx.fragment.app.viewModels
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
@@ -57,7 +61,11 @@ class MyFragment : Fragment(R.layout.fragment_my) {
     private val homeViewModel by viewModels<HomeViewModel>()
 
     @ExperimentalMaterialApi
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
         _binding = FragmentMyBinding.inflate(inflater, container, false)
         binding.composeView.apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
@@ -83,7 +91,7 @@ class MyFragment : Fragment(R.layout.fragment_my) {
                                         name = "Settings",
                                         route = "settings",
                                         icon = Icons.Default.Settings,
-                                        badgeCount = 214
+                                        badgeCount = 0
                                     ),
                                 ),
                                 navController = navController,
@@ -93,7 +101,7 @@ class MyFragment : Fragment(R.layout.fragment_my) {
                             )
                         }
                     ) {
-                        Navigation(navController = navController,homeViewModel)
+                        Navigation(navController = navController, homeViewModel)
                     }
                 }
             }
@@ -118,7 +126,7 @@ fun Navigation(navController: NavHostController, homeViewModel: HomeViewModel) {
             ChatScreen(movieList = homeViewModel.movieListResponse)
         }
         composable("settings") {
-            SettingsScreen()
+            SettingsScreen(movieList = homeViewModel.movieListResponse)
         }
     }
 }
@@ -146,7 +154,7 @@ fun BottomNavigationBar(
                 unselectedContentColor = Color.Gray,
                 icon = {
                     Column(horizontalAlignment = CenterHorizontally) {
-                        if(item.badgeCount > 0) {
+                        if (item.badgeCount > 0) {
                             BadgeBox(
                                 badgeContent = {
                                     Text(text = item.badgeCount.toString())
@@ -163,7 +171,7 @@ fun BottomNavigationBar(
                                 contentDescription = item.name
                             )
                         }
-                        if(selected) {
+                        if (selected) {
                             Text(
                                 text = item.name,
                                 textAlign = TextAlign.Center,
@@ -181,8 +189,7 @@ fun BottomNavigationBar(
 fun MovieList(movieList: List<ResMovie>) {
     var selectedIndex by remember { mutableStateOf(-1) }
     LazyColumn {
-        itemsIndexed(items = movieList) {
-                index, item ->
+        itemsIndexed(items = movieList) { index, item ->
             MovieItem(movie = item, index, selectedIndex) { i ->
                 selectedIndex = i
             }
@@ -285,12 +292,11 @@ fun ChatScreen(movieList: List<ResMovie>) {
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        LazyColumn(){
+        LazyColumn() {
             itemsIndexed(
                 items = movieList
             )
-            {
-                index, item ->
+            { index, item ->
                 Text(
                     text = item.name,
                     fontSize = 24.sp,
@@ -306,11 +312,81 @@ fun ChatScreen(movieList: List<ResMovie>) {
 }
 
 @Composable
-fun SettingsScreen() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(text = "Settings screen")
+fun SettingsScreen(movieList: List<ResMovie>) {
+    val constraints = ConstraintSet {
+        val greenBox = createRefFor("greenbox")
+        val redBox = createRefFor("redbox")
+        val gambar = createRefFor("gambar")
+        val judul = createRefFor("judul")
+
+        constrain(judul){
+            top.linkTo(parent.top)
+            start.linkTo(parent.start)
+            end.linkTo(parent.end)
+            width = Dimension.fillToConstraints
+            height = Dimension.wrapContent
+        }
+
+        constrain(gambar){
+            top.linkTo(judul.bottom)
+            start.linkTo(parent.start)
+            end.linkTo(parent.end)
+            width = Dimension.value(250.dp)
+            height = Dimension.value(250.dp)
+        }
+
+        constrain(greenBox) {
+            top.linkTo(gambar.bottom)
+            start.linkTo(parent.start)
+            width = Dimension.value(100.dp)
+            height = Dimension.value(100.dp)
+        }
+        constrain(redBox) {
+            top.linkTo(gambar.bottom)
+            start.linkTo(greenBox.end)
+            end.linkTo(parent.end)
+            width = Dimension.fillToConstraints
+            height = Dimension.value(100.dp)
+        }
+
+    }
+
+
+    ConstraintLayout(constraints, modifier = Modifier.fillMaxSize()) {
+        Text(
+            text = "Agus",
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 24.dp)
+                .layoutId("judul")
+        )
+        
+        Image(
+            painter = rememberImagePainter(
+                data = movieList.get(0).imageUrl,
+
+                builder = {
+                    scale(Scale.FILL)
+                    placeholder(R.drawable.ic_launcher_background)
+                    transformations(CircleCropTransformation())
+
+                }
+            ),
+            contentDescription = movieList.get(0).desc,
+            modifier = Modifier
+                .padding(vertical = 24.dp)
+                .fillMaxHeight()
+                .layoutId("gambar")
+        )
+
+        Box (modifier = Modifier
+            .background(Color.Green)
+            .layoutId("greenbox"))
+        Box (modifier = Modifier
+            .background(Color.Red)
+            .layoutId("redbox"))
     }
 }
