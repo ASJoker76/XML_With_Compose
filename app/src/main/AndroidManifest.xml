@@ -12,7 +12,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.XMLComposeMigration">
         <activity
-            android:name="com.tutorial.xml_compose_migration.view.activity.MainActivity"
+            android:name=".view.activity.MainActivity"
+            android:exported="false" />
+        <activity
+            android:name=".view.activity.HomeActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
